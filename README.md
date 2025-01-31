@@ -7,5 +7,5 @@ How to find ip and port resolume-arena :
 3. Preference
 4. Webserver (turn on)
    
-to custom ip dan port use /custom-port in url
+to custom ip and port use /custom-port in url
 
