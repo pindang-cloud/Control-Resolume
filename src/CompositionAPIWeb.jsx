@@ -82,24 +82,45 @@ const CompositionAPIWeb = ({ baseUrl }) => {
     ),
     responsive: [
       {
-        breakpoint: 1440,
-        settings: {
-          slidesToShow: 3,
-        }
-      },
-      {
         breakpoint: 1024,
         settings: {
-          slidesToShow: 2,
-        }
+          slidesToShow: 3,
+          centerMode: true,
+          centerPadding: "0px",
+        },
+      },
+      {
+        breakpoint: 820,
+        settings: {
+          slidesToShow: 3,
+          centerMode: true,
+          centerPadding: "0px",
+        },
       },
       {
         breakpoint: 768,
         settings: {
           slidesToShow: 1,
-          centerPadding: "0",
-        }
-      }
+          centerMode: true,
+          centerPadding: "100px",
+        },
+      },
+      {
+        breakpoint: 700,
+        settings: {
+          slidesToShow: 1,
+          centerMode: true,
+          centerPadding: "100px",
+        },
+      },
+      {
+        breakpoint: 480,
+        settings: {
+          slidesToShow: 1,
+          centerMode: true,
+          centerPadding: "0px",
+        },
+      },
     ]
   };
 
@@ -125,7 +146,7 @@ const CompositionAPIWeb = ({ baseUrl }) => {
         {decks.map((deck) => (
           <button
             key={deck.id}
-            onClick={() => selectDeck(deck.id)}
+            onClick={() => selectDeck(deck.id).fetchData()}
             className={`py-2 px-4 font-medium text-white transition-all duration-300 rounded-lg
               ${deck.selected.value ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-700 hover:bg-gray-600'}
               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
