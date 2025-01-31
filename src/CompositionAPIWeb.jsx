@@ -33,9 +33,9 @@ const CompositionAPIWeb = ({ baseUrl }) => {
     };
 
     fetchData();
-    const interval = setInterval(fetchData, 2500);
+    const interval = setInterval(fetchData, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [baseUrl]);
 
   const connectClip = async (clipId) => {
     try {
@@ -46,7 +46,6 @@ const CompositionAPIWeb = ({ baseUrl }) => {
         throw new Error(`Failed to connect clip: ${response.statusText}`);
       }
       setActiveClip(clipId);
-      
     } catch (err) {
       console.error(err.message);
     }
@@ -73,81 +72,41 @@ const CompositionAPIWeb = ({ baseUrl }) => {
     slidesToShow: 3,
     slidesToScroll: 1,
     centerMode: true,
-    centerPadding: "0px",
-    beforeChange: (oldIndex, newIndex) => {
-      // console.log('Changing from slide', oldIndex, 'to slide', newIndex); 
-    },
-    afterChange: (index) => {
-      setCurrentSlide(index);
-      // console.log('Current Slide:', clips[index]?.name?.value); 
-    },
-    nextArrow: <button type="button" className="slick-next">Next</button>,
-    prevArrow: <button type="button" className="slick-prev">Previous</button>,
+    centerPadding: "0",
+    focusOnSelect: true,
+    afterChange: (index) => setCurrentSlide(index),
+    customPaging: (i) => (
+      <button className="custom-dot">
+        {i + 1}
+      </button>
+    ),
     responsive: [
+      {
+        breakpoint: 1440,
+        settings: {
+          slidesToShow: 3,
+        }
+      },
       {
         breakpoint: 1024,
         settings: {
-          slidesToShow: 3,
-          centerMode: true,
-          centerPadding: "0px",
-        },
-      },
-      {
-        breakpoint: 820,
-        settings: {
-          slidesToShow: 3,
-          centerMode: true,
-          centerPadding: "0px",
-        },
+          slidesToShow: 2,
+        }
       },
       {
         breakpoint: 768,
         settings: {
           slidesToShow: 1,
-          centerMode: true,
-          centerPadding: "100px",
-        },
-      },
-      {
-        breakpoint: 700,
-        settings: {
-          slidesToShow: 1,
-          centerMode: true,
-          centerPadding: "100px",
-        },
-      },
-      {
-        breakpoint: 480,
-        settings: {
-          slidesToShow: 1,
-          centerMode: true,
-          centerPadding: "0px",
-        },
-      },
-    ],
+          centerPadding: "0",
+        }
+      }
+    ]
   };
 
   return (
     <div className="min-h-screen bg-gray-900 relative overflow-hidden">
-      <div className="animated-background"></div>
-      <div className="animated-overlay"></div>
-      {/* Video Background */}
-      {/* {clips.length > 0 && (
-        <div className="absolute inset-0 z-0">
-        {clips[currentSlide]?.name?.value ? (
-          <video
-            key={currentSlide}  
-            className="w-full h-full object-cover opacity-20"
-            autoPlay
-            loop
-            muted
-            src={`./konten/${clips[currentSlide]?.name?.value}.mp4`}
-          />
-        ) : (
-          <p className="text-white font-bold text-9xl text-left">Video tidak ditemukan</p> 
-        )}
-      </div>
-      )} */}
+    <div className="animated-background"></div>
+    <div className="animated-overlay"></div>
 
       {/* Loading and Error States */}
       {loading && (
@@ -162,12 +121,12 @@ const CompositionAPIWeb = ({ baseUrl }) => {
       )}
 
       {/* Deck Selection Buttons */}
-      <div className="absolute top-4 left-4 z-20">
+      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 flex flex-row space-x-4">
         {decks.map((deck) => (
           <button
             key={deck.id}
             onClick={() => selectDeck(deck.id)}
-            className={`block w-full py-2 px-4 mb-2 font-medium text-white transition-all duration-300
+            className={`py-2 px-4 font-medium text-white transition-all duration-300 rounded-lg
               ${deck.selected.value ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-700 hover:bg-gray-600'}
               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
           >
@@ -180,15 +139,13 @@ const CompositionAPIWeb = ({ baseUrl }) => {
       <div className="relative z-10 h-screen flex items-center">
         <div className="w-full max-w-6xl mx-auto px-4">
           <Slider {...sliderSettings}>
-            {clips.map((clip) => (
+            {clips.map((clip, index) => (
               <div key={clip.id} className="p-4">
                 <div
-                  className={`
-                    transform transition-all duration-300
-                    ${currentSlide === clips.indexOf(clip) ? 'scale-100' : 'scale-90 opacity-50'}
-                  `}
+                  className={`transform transition-all duration-300 ease-in-out
+                    ${currentSlide === index ? 'scale-110 opacity-100' : 'scale-90 opacity-50'}`}
                 >
-                  <div className="bg-gray-800 overflow-hidden">
+                  <div className="bg-gray-800 overflow-hidden rounded-xl">
                     <div className="relative">
                       <img
                         src={`${baseUrl}/api/v1/composition/clips/by-id/${clip.id}/thumbnail`}
@@ -198,24 +155,25 @@ const CompositionAPIWeb = ({ baseUrl }) => {
                       <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent" />
                     </div>
 
-                    <div className="p-6">
-                      <h3 className="text-xl font-semibold text-white mb-4 text-center">
-                        {clip.name.value}
-                      </h3>
+                    {/* Tombol Play Hanya Muncul di Slide Tengah */}
+                    {currentSlide === index && (
+                      <div className="p-6">
+                        <h3 className="text-xl font-semibold text-white mb-4 text-center">
+                          {clip.name.value}
+                        </h3>
 
-                      <button
-                        onClick={() => connectClip(clip.id)}
-                        className={`
-                          w-full py-2 px-4 font-medium text-2xl transition-all duration-300
-                          ${activeClip === clip.id
-                            ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                            : 'bg-gray-700 hover:bg-gray-600 text-gray-200'}
-                          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
-                        `}
-                      >
-                        {activeClip === clip.id ? 'Played' : 'Play'}
-                      </button>
-                    </div>
+                        <button
+                          onClick={() => connectClip(clip.id)}
+                          className={`w-full py-2 px-4 font-medium text-2xl transition-all duration-300 rounded-lg
+                            ${activeClip === clip.id
+                              ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                              : 'bg-gray-700 hover:bg-gray-600 text-gray-200'}
+                            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
+                        >
+                          {activeClip === clip.id ? 'Playing' : 'Play'}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -226,114 +184,109 @@ const CompositionAPIWeb = ({ baseUrl }) => {
 
       {/* Custom Styles */}
       <style>{`
-        /* Existing slider styles */
-        .slick-track {
-          display: flex !important;
-          align-items: center !important;
-        }
-        .slick-slide {
-          transition: all 300ms ease;
-          padding: 0 10px;
-        }
-        .slick-dots {
-          top: 25rem;
-        }
-        .slick-dots li button:before {
-          color: #9CA3AF;
-          opacity: 0.5;
-        }
-        .slick-dots li.slick-active button:before {
-          color: #60A5FA;
-          opacity: 1;
-        }
-        .slick-prev, .slick-next {
-          z-index: 20;
-          font-size: 24px;
-        }
-        .slick-prev {
-          left: 0;
-        }
-        .slick-next {
-          right: 0;
-        }
+      .slick-track {
+        display: flex !important;
+        align-items: center !important;
+      }
+      
+      .slick-slide {
+        transition: all 500ms ease-in-out;
+        transform-style: preserve-3d;
+        perspective: 1000px;
+      }
+      
+      .slick-slide.slick-center {
+        transform: scale(1.1);
+        z-index: 10;
+        opacity: 1;
+      }
+      
+      .slick-slide:not(.slick-center) {
+        transform: scale(0.9);
+        opacity: 0.5;
+      }
 
-        /* Animated Background Styles */
-        .animated-background {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: linear-gradient(
-            45deg,
-            #0f172a,
-            #1e293b,
-            #1a237e,
-            #1e293b,
-            #0f172a
-          );
-          background-size: 400% 400%;
-          animation: gradient 15s ease infinite;
-          z-index: 0;
-        }
+      .custom-dot {
+        width: 24px;
+        height: 24px;
+        margin: 0 4px;
+        color: white;
+        opacity: 0.5;
+        transition: all 300ms ease;
+      }
 
-        .animated-overlay {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: radial-gradient(
-            circle at center,
-            transparent 0%,
-            rgba(0, 0, 0, 0.3) 100%
-          );
-          z-index: 1;
-        }
+      .slick-active .custom-dot {
+        opacity: 1;
+        color: #10B981;
+      }
 
-        @keyframes gradient {
-          0% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
-          100% {
-            background-position: 0% 50%;
-          }
-        }
+      .slick-dots {
+        bottom: -60px;
+        display: flex !important;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+      }
 
-        /* Add subtle floating particles */
-        .animated-background::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background-image: 
-            radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-            radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
-          background-size: 50px 50px;
-          animation: float 20s linear infinite;
-        }
+      .slick-dots li {
+        margin: 0;
+      }
 
-        @keyframes float {
-          0% {
-            background-position: 0 0;
-          }
-          100% {
-            background-position: 50px 50px;
-          }
-        }
+      .slick-prev, .slick-next {
+        width: 48px;
+        height: 48px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        z-index: 20;
+        transition: all 300ms ease;
+      }
 
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-          .slick-slide {
-            padding: 0 10px;
-          }
+      .slick-prev:hover, .slick-next:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      .slick-prev {
+        left: 24px;
+      }
+
+      .slick-next {
+        right: 24px;
+      }
+
+      .animated-background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+        background-size: 400% 400%;
+        animation: gradientBG 15s ease infinite;
+        z-index: -1;
+      }
+
+      @keyframes gradientBG {
+        0% {
+          background-position: 0% 50%;
         }
-      `}</style>
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+
+      .animated-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 0;
+      }
+    `}</style>
     </div>
   );
 };

@@ -7,7 +7,7 @@ import CustomPortPage from "./CustomPortPage";
 
 function App() {
   const [baseUrl, setBaseUrl] = useState(() => {
-    const savedIP = localStorage.getItem('serverIP') || '192.168.100.10';
+    const savedIP = localStorage.getItem('serverIP') || '192.168.18.43';
     const savedPort = localStorage.getItem('serverPort') || '8080';
     return `http://${savedIP}:${savedPort}`;
   });

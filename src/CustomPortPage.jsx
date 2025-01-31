@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const CustomPortPage = () => {
-  const [ip, setIp] = useState(() => localStorage.getItem('serverIP') || '192.168.100.10');
+  const [ip, setIp] = useState(() => localStorage.getItem('serverIP') || '192.168.18.43');
   const [port, setPort] = useState(() => localStorage.getItem('serverPort') || '8080');
   const navigate = useNavigate();
 
