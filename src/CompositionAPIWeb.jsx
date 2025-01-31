@@ -59,9 +59,33 @@ const CompositionAPIWeb = ({ baseUrl }) => {
       if (!response.ok) {
         throw new Error(`Failed to select deck: ${response.statusText}`);
       }
-      console.log(`Deck ${deckId} selected successfully`);
+      // console.log(`Deck ${deckId} selected successfully`);
     } catch (err) {
       console.error(err.message);
+    }
+  };
+
+  const collectData = async () => {
+    setLoading(true);
+    setError(null);
+  
+    try {
+      const response = await fetch(`${baseUrl}/api/v1/composition`);
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} - ${response.statusText}`);
+      }
+  
+      const result = await response.json();
+  
+      const allClips = result.layers.flatMap(layer => layer.clips || []);
+      const filteredClips = allClips.filter(clip => clip.name && clip.name.value);
+  
+      setClips(filteredClips);
+      setDecks(result.decks || []);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -126,8 +150,9 @@ const CompositionAPIWeb = ({ baseUrl }) => {
 
   return (
     <div className="min-h-screen bg-gray-900 relative overflow-hidden">
-    <div className="animated-background"></div>
-    <div className="animated-overlay"></div>
+      {/* Animated Background */}
+      <div className="animated-background"></div>
+      <div className="animated-overlay"></div>
 
       {/* Loading and Error States */}
       {loading && (
@@ -146,7 +171,10 @@ const CompositionAPIWeb = ({ baseUrl }) => {
         {decks.map((deck) => (
           <button
             key={deck.id}
-            onClick={() => selectDeck(deck.id).fetchData()}
+            onClick={ async () => {
+              selectDeck(deck.id);
+              collectData();
+            }}
             className={`py-2 px-4 font-medium text-white transition-all duration-300 rounded-lg
               ${deck.selected.value ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-700 hover:bg-gray-600'}
               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
@@ -205,109 +233,109 @@ const CompositionAPIWeb = ({ baseUrl }) => {
 
       {/* Custom Styles */}
       <style>{`
-      .slick-track {
-        display: flex !important;
-        align-items: center !important;
-      }
-      
-      .slick-slide {
-        transition: all 500ms ease-in-out;
-        transform-style: preserve-3d;
-        perspective: 1000px;
-      }
-      
-      .slick-slide.slick-center {
-        transform: scale(1.1);
-        z-index: 10;
-        opacity: 1;
-      }
-      
-      .slick-slide:not(.slick-center) {
-        transform: scale(0.9);
-        opacity: 0.5;
-      }
-
-      .custom-dot {
-        width: 24px;
-        height: 24px;
-        margin: 0 4px;
-        color: white;
-        opacity: 0.5;
-        transition: all 300ms ease;
-      }
-
-      .slick-active .custom-dot {
-        opacity: 1;
-        color: #10B981;
-      }
-
-      .slick-dots {
-        bottom: -60px;
-        display: flex !important;
-        justify-content: center;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .slick-dots li {
-        margin: 0;
-      }
-
-      .slick-prev, .slick-next {
-        width: 48px;
-        height: 48px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 50%;
-        z-index: 20;
-        transition: all 300ms ease;
-      }
-
-      .slick-prev:hover, .slick-next:hover {
-        background: rgba(255, 255, 255, 0.2);
-      }
-
-      .slick-prev {
-        left: 24px;
-      }
-
-      .slick-next {
-        right: 24px;
-      }
-
-      .animated-background {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
-        background-size: 400% 400%;
-        animation: gradientBG 15s ease infinite;
-        z-index: -1;
-      }
-
-      @keyframes gradientBG {
-        0% {
-          background-position: 0% 50%;
+        .slick-track {
+          display: flex !important;
+          align-items: center !important;
         }
-        50% {
-          background-position: 100% 50%;
+        
+        .slick-slide {
+          transition: all 500ms ease-in-out;
+          transform-style: preserve-3d;
+          perspective: 1000px;
         }
-        100% {
-          background-position: 0% 50%;
+        
+        .slick-slide.slick-center {
+          transform: scale(1.1);
+          z-index: 10;
+          opacity: 1;
         }
-      }
+        
+        .slick-slide:not(.slick-center) {
+          transform: scale(0.9);
+          opacity: 0.5;
+        }
 
-      .animated-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 0;
-      }
-    `}</style>
+        .custom-dot {
+          width: 24px;
+          height: 24px;
+          margin: 0 4px;
+          color: white;
+          opacity: 0.5;
+          transition: all 300ms ease;
+        }
+
+        .slick-active .custom-dot {
+          opacity: 1;
+          color: #10B981;
+        }
+
+        .slick-dots {
+          bottom: -60px;
+          display: flex !important;
+          justify-content: center;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .slick-dots li {
+          margin: 0;
+        }
+
+        .slick-prev, .slick-next {
+          width: 48px;
+          height: 48px;
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 50%;
+          z-index: 20;
+          transition: all 300ms ease;
+        }
+
+        .slick-prev:hover, .slick-next:hover {
+          background: rgba(255, 255, 255, 0.2);
+        }
+
+        .slick-prev {
+          left: 24px;
+        }
+
+        .slick-next {
+          right: 24px;
+        }
+
+        .animated-background {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(-45deg, #1a1a1a, #2c3e50, #34495e, #1a1a1a);
+          background-size: 400% 400%;
+          animation: gradientBG 15s ease infinite;
+          z-index: -1;
+        }
+
+        @keyframes gradientBG {
+          0% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+          100% {
+            background-position: 0% 50%;
+          }
+        }
+
+        .animated-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.7);
+          z-index: 0;
+        }
+      `}</style>
     </div>
   );
 };
